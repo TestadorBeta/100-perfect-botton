@@ -1,0 +1,84 @@
+-- Configurações iniciais
+getgenv().unlockfps = true
+
+pcall(function()
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Script Ativado",
+        Text = "Legit?",
+        Duration = 3
+    })
+end)
+
+local player = game.Players.LocalPlayer
+local shootEvent = game:GetService("ReplicatedStorage"):WaitForChild("ShootBall") -- Nome do evento de arremesso
+local ball = nil
+
+-- Função para verificar se o jogador possui a bola
+local function hasBall()
+    if player.Character then
+        ball = player.Character:FindFirstChild("Ball")
+        return ball ~= nil
+    end
+    return false
+end
+
+-- Função para realizar o arremesso
+local function shootPerfect()
+    if hasBall() then
+        shootEvent:FireServer(1) -- Valor que simula arremesso perfeito
+    else
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Aviso",
+            Text = "Você não está com a bola!",
+            Duration = 2
+        })
+    end
+end
+
+-- Criar o botão móvel
+local UIS = game:GetService("UserInputService")
+local PlayerGui = player:WaitForChild("PlayerGui")
+local ScreenGui = Instance.new("ScreenGui")
+local Button = Instance.new("TextButton")
+
+ScreenGui.Name = "PerfectShotGui"
+ScreenGui.Parent = PlayerGui
+ScreenGui.ResetOnSpawn = false
+
+Button.Parent = ScreenGui
+Button.Text = "Arremessar"
+Button.Size = UDim2.new(0, 120, 0, 50)
+Button.Position = UDim2.new(0.4, 0, 0.8, 0)
+Button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.Font = Enum.Font.SourceSansBold
+Button.TextSize = 20
+Button.Draggable = true
+
+-- Função para mover o botão
+Button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        local Dragging = true
+        local DragInput, StartPos
+        StartPos = input.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                Dragging = false
+            end
+        end)
+
+        UIS.InputChanged:Connect(function(input2)
+            if Dragging and input2.UserInputType == Enum.UserInputType.MouseMovement then
+                local Delta = input2.Position - StartPos
+                Button.Position = UDim2.new(0, Button.Position.X.Offset + Delta.X, 0, Button.Position.Y.Offset + Delta.Y)
+                StartPos = input2.Position
+            end
+        end)
+    end
+end)
+
+-- Acionar o arremesso ao clicar no botão
+Button.MouseButton1Click:Connect(function()
+    shootPerfect()
+end)
